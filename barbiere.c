@@ -91,15 +91,16 @@ void libero_cassiere (struct gestore_t *g) {
 
 void *cliente (void *arg) {
     int thread_id = *((int*) arg);
+    int i;
     while(true) {
         acquisisci_divano(&g);
         acquisisci_barbiere(&g);
         //taglio capelli
-        int i = SHAVING_ITERATIONS;
+        i = SHAVING_ITERATIONS;
         while(i-- > 0) {};
         acquisisci_cassiere(&g);
         //pagamento
-        int i = PAYING_ITERATIONS;
+        i = PAYING_ITERATIONS;
         while(i-- > 0) {};
         libero_cassiere(&g);
         printf("%d> FATTO!\n", thread_id); fflush(stdout);
