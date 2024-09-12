@@ -17,7 +17,8 @@ struct gestore_t {
     pthread_cond_t cassiere;
     pthread_cond_t barbiere;
 
-    int c_barbiere, c_divano, c_cassiere;
+    int c_barbiere, c_divano;
+    bool cassiere_libero;
 } g;
 
 void gestore_init (struct gestore_t *g) {
@@ -34,7 +35,10 @@ void gestore_init (struct gestore_t *g) {
 
     g->c_barbiere = 0;
     g->c_divano = 0;
-    g->c_cassiere = 0;
+    g->cassiere_libero = true;
+
+    pthread_condattr_destroy(&condattr);
+    pthread_mutexattr_destroy(&mutexattr);
 }
 
 void acquisisci_divano (struct gestore_t *g) {
@@ -60,36 +64,44 @@ void acquisisci_barbiere (struct gestore_t *g) {
     pthread_cond_signal(&g->divano);
     g->c_barbiere++;
 
-    //taglio capelli
-    int i = SHAVING_ITERATIONS;
-    while(i-- > 0) {};
-
     pthread_mutex_unlock(&g->m);
 }
 
 void acquisisci_cassiere (struct gestore_t *g) {
     pthread_mutex_lock(&g->m);
 
-    while (g->c_cassiere >= 1) {
+    while (!g->cassiere_libero) {
         pthread_cond_wait(&g->cassiere, &g->m);
     }
     g->c_barbiere--;
+    g->cassiere_libero = false;
     pthread_cond_signal(&g->barbiere);
-    g->c_cassiere++;
 
-    //pagamento
-    int i = PAYING_ITERATIONS;
-    while(i-- > 0) {};
+    pthread_mutex_unlock(&g->m);
+}
+
+void libero_cassiere (struct gestore_t *g) {
+    pthread_mutex_lock(&g->m);
+
+    g->cassiere_libero = true;
+    pthread_cond_signal(&g->cassiere);
 
     pthread_mutex_unlock(&g->m);
 }
 
 void *cliente (void *arg) {
-      int thread_id = *((int*) arg);
+    int thread_id = *((int*) arg);
     while(true) {
         acquisisci_divano(&g);
         acquisisci_barbiere(&g);
+        //taglio capelli
+        int i = SHAVING_ITERATIONS;
+        while(i-- > 0) {};
         acquisisci_cassiere(&g);
+        //pagamento
+        int i = PAYING_ITERATIONS;
+        while(i-- > 0) {};
+        libero_cassiere(&g);
         printf("%d> FATTO!\n", thread_id); fflush(stdout);
         // e ricomincio...
         sleep(1);
