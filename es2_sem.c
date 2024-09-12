@@ -109,74 +109,59 @@ void pausetta(void)
   nanosleep(&t,NULL);
 }
 
-/* ------------------------------------------------------------------------ */
+int id_A = 0;
+int id_B = 0;
+int id_R = 0;
 
-/* le funzioni della risorsa R fittizia */
 
-#define BUSY 1000000
-#define CYCLE 50
-
-void myprint(char *s)
-{
-  int i,j;
-  fprintf(stderr,"[");
-  for (j=0; j<CYCLE; j++) {
-    fprintf(stderr,s);
-    for (i=0; i<BUSY; i++);
-  }
-  fprintf(stderr,"]");
-}
 void ProcA(void)
 {
-  myprint("-");
+  printf("Eseguo A-%d", id_A);
 }
 
 void ProcB(void)
 {
-  myprint("+");
+  printf("Eseguo B-%d", id_B);
 }
 
 void Reset(void)
 {
-  myprint(".");
+  printf("Eseguo R-%d", id_R);
 }
 
 
 void *PA(void *arg)
 {
-  for (;;) {
-    fprintf(stderr,"A");
+    id_A++;
+    printf("Inizio A-%d", id_A);
     StartProcAorProcB(&gestore);
     ProcA();
     EndProcAorProcB(&gestore);
-    fprintf(stderr,"a");
-  }
-  return 0;
+    printf("Fine A-%d", id_A);
+    return 0;
 }
 
 void *PB(void *arg)
 {
-  for (;;) {
-    fprintf(stderr,"B");
+    id_B++;
+    printf("Inizio B-%d", id_B);
     StartProcAorProcB(&gestore);
     ProcB();
     EndProcAorProcB(&gestore);
-    fprintf(stderr,"b");
-  }
-  return 0;
+    printf("Fine B-%d", id_B);
+    return 0;
 }
 
 void *PR(void *arg)
 {
-  for (;;) {
-    fprintf(stderr,"R");
+    id_R++;
+    printf("Inizio R-%d", id_R);
     StartReset(&gestore);
     Reset();
     EndReset(&gestore);
-    fprintf(stderr,"r");
+    printf("Fine R-%d", id_R);
     pausetta();
-  }
-  return 0;
+    return 0;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -187,7 +172,7 @@ int main(int argc, char **argv)
   pthread_t p;
   
   /* inizializzo il sistema */
-  myInit();
+  gestore_init(&gestore);
 
   /* inizializzo i numeri casuali, usati nella funzione pausetta */
   srand(555);
@@ -208,4 +193,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
