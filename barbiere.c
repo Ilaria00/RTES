@@ -84,8 +84,9 @@ void acquisisci_cassiere (struct gestore_t *g) {
 }
 
 void *cliente (void *arg) {
+      int thread_id = *((int*) arg);
+      int i;
     while(true) {
-        int i;
         acquisisci_divano(&g);
         acquisisci_barbiere(&g);
         acquisisci_cassiere(&g);
@@ -113,3 +114,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
