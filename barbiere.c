@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define SHAVING_ITERATIONS 1000
 #define PAYING_ITERATIONS  1000
@@ -17,7 +18,7 @@ struct gestore_t {
     pthread_cond_t barbiere;
 
     int c_barbiere, c_divano, c_cassiere;
-}
+} g;
 
 void gestore_init (struct gestore_t *g) {
     pthread_mutexattr_t mutexattr;
@@ -26,8 +27,8 @@ void gestore_init (struct gestore_t *g) {
     pthread_mutexattr_init(&mutexattr);
     pthread_condattr_init(&condattr);
 
-    ptrhead_mutex_init(&g->m, &mutexattr);
-    ptrhead_cond_init(&g->divano, &condattr);
+    pthread_mutex_init(&g->m, &mutexattr);
+    pthread_cond_init(&g->divano, &condattr);
     pthread_cond_init(&g->cassiere, &condattr);
     pthread_cond_init(&g->barbiere, &condattr);
 
@@ -41,7 +42,7 @@ void acquisisci_divano (struct gestore_t *g) {
 
     //mi blocco finché i posti sul divano sono occupati
     while (g->c_divano >= 4) {
-        pthread_cond_wait(&g->divano);
+        pthread_cond_wait(&g->divano, &g->m);
     }
     g->c_divano++;
 
@@ -53,14 +54,14 @@ void acquisisci_barbiere (struct gestore_t *g) {
 
     //mi blocco finché i barbieri sono occupati
     while (g->c_barbiere >= 3) {
-        pthread_cond_wait(&g->barbiere);
+        pthread_cond_wait(&g->barbiere, &g->m);
     }
     g->c_divano--;
     pthread_cond_signal(&g->divano);
     g->c_barbiere++;
 
     //taglio capelli
-    i = SHAVING_ITERATIONS
+    int i = SHAVING_ITERATIONS;
     while(i-- > 0) {};
 
     pthread_mutex_unlock(&g->m);
@@ -69,15 +70,15 @@ void acquisisci_barbiere (struct gestore_t *g) {
 void acquisisci_cassiere (struct gestore_t *g) {
     pthread_mutex_lock(&g->m);
 
-    while (p->c_cassiere >= 1) {
-        pthread_cond_wait(&g->cassiere);
+    while (g->c_cassiere >= 1) {
+        pthread_cond_wait(&g->cassiere, &g->m);
     }
-    g->c_barbiere--
+    g->c_barbiere--;
     pthread_cond_signal(&g->barbiere);
     g->c_cassiere++;
 
     //pagamento
-    i = PAYING_ITERATIONS;
+    int i = PAYING_ITERATIONS;
     while(i-- > 0) {};
 
     pthread_mutex_unlock(&g->m);
@@ -85,7 +86,6 @@ void acquisisci_cassiere (struct gestore_t *g) {
 
 void *cliente (void *arg) {
       int thread_id = *((int*) arg);
-      int i;
     while(true) {
         acquisisci_divano(&g);
         acquisisci_barbiere(&g);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
     pthread_t threads[NUM_CLI];
     int thread_ids[NUM_CLI];
 
-    gestore_init(&g_gestore);
+    gestore_init(&g);
 
     for (int i = 0; i < NUM_CLI; i++) {
         thread_ids[i] = i;
