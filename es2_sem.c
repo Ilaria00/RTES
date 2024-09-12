@@ -52,9 +52,11 @@ void EndProcAorProcB (struct gestore_t *g) {
     g->AoB_esecuzione--;
     //se ci sono processi reset in attesa li sveglio
     if (g->reset_attesa) {
+        g->reset_esecuzione++; 
         sem_post(&g->reset_s);
     }
     else if (g->AoB_attesa) {
+        g->AoB_esecuzione++; 
         sem_post(&g->procAoB_s);
     }
     else {
@@ -87,9 +89,11 @@ void EndReset (struct gestore_t *g) {
     g->reset_esecuzione--;
 
     if (g->reset_attesa) {
+        g->reset_esecuzione++; 
         sem_post(&g->reset_s);
     }
     else if (g->AoB_attesa) {
+        g->AoB_esecuzione++; 
         sem_post(&g->procAoB_s);
     }
     else {
@@ -142,9 +146,9 @@ void *PA(void *arg)
 {
   for (;;) {
     fprintf(stderr,"A");
-    StartProcA();
+    StartProcAorProcB(&gestore);
     ProcA();
-    EndProcA();
+    EndProcAorProcB(&gestore);
     fprintf(stderr,"a");
   }
   return 0;
@@ -154,9 +158,9 @@ void *PB(void *arg)
 {
   for (;;) {
     fprintf(stderr,"B");
-    StartProcB();
+    StartProcAorProcB(&gestore);
     ProcB();
-    EndProcB();
+    EndProcAorProcB(&gestore);
     fprintf(stderr,"b");
   }
   return 0;
@@ -166,9 +170,9 @@ void *PR(void *arg)
 {
   for (;;) {
     fprintf(stderr,"R");
-    StartReset();
+    StartReset(&gestore);
     Reset();
-    EndReset();
+    EndReset(&gestore);
     fprintf(stderr,"r");
     pausetta();
   }
