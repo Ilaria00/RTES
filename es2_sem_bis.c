@@ -25,18 +25,13 @@ struct handler_t {
 
 void handler_init(struct handler_t* handler)
 {
-    sem_init(&g->mutex, 0, 1);
+    sem_init(&handler->mutex, 0, 1);
 
-    sem_init(&g->reset_s, 0, 0);
-    sem_init(&g->procAoB_s, 0, 0);
+    sem_init(&handler->reset_s, 0, 0);
+    sem_init(&handler->procAoB_s, 0, 0);
 
-    g->reset_attesa = g->AoB_attesa = 0;
-    g->reset_esecuzione = g->AoB_esecuzione = 0;
-}
-
-void handler_print(struct handler_t* handler)
-{
-    my_printf("cab=%d, cr=%d, nab=%d, nr=%d\n", handler->cab, handler->cr, handler->nab, handler->nr);
+    handler->reset_attesa = handler->AoB_attesa = 0;
+    handler->reset_esecuzione = handler->AoB_esecuzione = 0;
 }
 
 // ------------------------------------------------------------------------------------------------
