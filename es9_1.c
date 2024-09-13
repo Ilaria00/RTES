@@ -44,36 +44,21 @@ void gestore_init (struct gestore_t *g) {
     }
 }
 
-void send (struct gestore_t *g, int j) {
-    g->mex[j] = j; /*non mi serve fare mutua esclusione sul messaggio
-    poiché ciascun thread opera su un indice diverso!*/
-
-    sem_wait(&g->mutex);
-    g->num_mex++;
-    if (g->num_mex == M) {
-        sem_post(&g->priv_R);
-    }
-    sem_post(&g->mutex);
-    sem_wait(&g->priv_W[j].s);
-    /*ciascun produttore si blocca sul proprio semaforo, 
-    in attesa che il consumatore lo svegli*/
-}
-
-void receive (struct gestore_t *g) {
-    sem_wait(&g->priv_R);
-    sem_wait(&g->mutex);
-
-    g->num_mex = 0;
-    for (int k=0; k<M; k++) {
-        sem_post(&g->priv_W[k].s);
-    }
-    sem_post(&g->mutex);
-}
-
-void *producer (void *arg) {
+void *producer (void *arg, stuct gestore_t *g) {
     int thread_idx = *(int*) arg;
     while (1) {
-        send(&gestore, thread_idx);
+        g->mex[j] = j; /*non mi serve fare mutua esclusione sul messaggio
+        poiché ciascun thread opera su un indice diverso!*/
+        printf("thread %d inserisce '%d'\n", thread_idx, thread_idx);
+        sem_wait(&g->mutex);
+        g->num_mex++;
+        if (g->num_mex == M) {
+            sem_post(&g->priv_R);
+        }
+        sem_post(&g->mutex);
+        sem_wait(&g->priv_W[j].s);
+    /*ciascun produttore si blocca sul proprio semaforo, 
+    in attesa che il consumatore lo svegli*/
         sleep(1);
     }
     pthread_exit(0);
@@ -81,8 +66,14 @@ void *producer (void *arg) {
 
 void *consumer (void *arg) {
     while(1) {
-        receive(&gestore);
-        sleep(1);
+        sem_wait(&g->priv_R);
+        sem_wait(&g->mutex);
+        printf("Letto il messaggio %d%d%d%d%d", g->mex[0], g->mex[1], g->mex[2], g->mex[3], g->mex[4]);
+        g->num_mex = 0;
+        for (int k=0; k<M; k++) {
+            sem_post(&g->priv_W[k].s);
+        }
+        sem_post(&g->mutex);
     }
     pthread_exit(0);
 }
