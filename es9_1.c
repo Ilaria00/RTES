@@ -92,9 +92,9 @@ int main(void){
     for(int i = 0; i < 6; i++){
 
         if(i == 0) 
-            pthread_create(&threads[i], &a, consumer, NULL); // il primo processo è il lettore
+            pthread_create(&threads[i], &a, priv_R, NULL); // il primo processo è il lettore
         else{
-            pthread_create(&threads[current_consumer], &a, producer, (void*) &consumer_ids[current_consumer]); // gli altri sono consumatori, ai quali assegno un indice
+            pthread_create(&threads[current_consumer], &a, priv_W, (void*) &consumer_ids[current_consumer]); // gli altri sono consumatori, ai quali assegno un indice
             current_consumer++;
         }
 
