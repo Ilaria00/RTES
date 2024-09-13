@@ -44,7 +44,7 @@ void gestore_init (struct gestore_t *g) {
     }
 }
 
-void *producer (void *arg, stuct gestore_t *g) {
+void *producer (void *arg, struct gestore_t *g) {
     int thread_idx = *(int*) arg;
     while (1) {
         g->mex[j] = j; /*non mi serve fare mutua esclusione sul messaggio
@@ -64,7 +64,7 @@ void *producer (void *arg, stuct gestore_t *g) {
     pthread_exit(0);
 }
 
-void *consumer (void *arg) {
+void *consumer (void *arg, struct gestore_t *g) {
     while(1) {
         sem_wait(&g->priv_R);
         sem_wait(&g->mutex);
