@@ -47,7 +47,7 @@ void gestore_init (struct gestore_t *g) {
 void *producer (void *arg, struct gestore_t *g) {
     int thread_idx = *(int*) arg;
     while (1) {
-        g->mex[j] = j; /*non mi serve fare mutua esclusione sul messaggio
+        g->mex[thread_idx] = thread_idx; /*non mi serve fare mutua esclusione sul messaggio
         poiché ciascun thread opera su un indice diverso!*/
         printf("thread %d inserisce '%d'\n", thread_idx, thread_idx);
         sem_wait(&g->mutex);
@@ -56,7 +56,7 @@ void *producer (void *arg, struct gestore_t *g) {
             sem_post(&g->priv_R);
         }
         sem_post(&g->mutex);
-        sem_wait(&g->priv_W[j].s);
+        sem_wait(&g->priv_W[thread_idx].s);
     /*ciascun produttore si blocca sul proprio semaforo, 
     in attesa che il consumatore lo svegli*/
         sleep(1);
