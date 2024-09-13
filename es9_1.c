@@ -14,7 +14,7 @@ struct semaforoprivato_t {
     int nw;
 } semaforo;
 
-struct gestore_t {
+typedef struct {
     sem_t mutex; 
     sem_t priv_R; //semaforo del lettore e dello scrittore
     struct semaforoprivato_t priv_W[M];
@@ -22,7 +22,9 @@ struct gestore_t {
     int nr; //thread in esecuzione
     int num_mex;
     T mex[M];
-} gestore;
+} g_t;
+
+g_t g;
 
 void semaforoprivato_init (struct semaforoprivato_t *s) {
     sem_init(&s->s, 0, 0);
@@ -30,7 +32,7 @@ void semaforoprivato_init (struct semaforoprivato_t *s) {
     s->nw = 0;
 }
 
-void gestore_init (struct gestore_t *g) {
+void gestore_init (g_t *g) {
     sem_init(&g->mutex, 0, 1);
     sem_init(&g->priv_R, 0, 0);
     for (int j=0; j<M; j++) {
@@ -44,7 +46,7 @@ void gestore_init (struct gestore_t *g) {
     }
 }
 
-void *producer (void *arg, struct gestore_t *g) {
+void *producer (void *arg) {
     int thread_idx = *(int*) arg;
     while (1) {
         g->mex[thread_idx] = thread_idx; /*non mi serve fare mutua esclusione sul messaggio
@@ -64,7 +66,7 @@ void *producer (void *arg, struct gestore_t *g) {
     pthread_exit(0);
 }
 
-void *consumer (void *arg, struct gestore_t *g) {
+void *consumer (void *arg) {
     while(1) {
         sem_wait(&g->priv_R);
         sem_wait(&g->mutex);
@@ -87,14 +89,14 @@ int main(void){
 
     pthread_attr_init(&a);
 
-    gestore_init(&gestore);
+    gestore_init(&g);
 
     for(int i = 0; i < 6; i++){
 
         if(i == 0) 
-            pthread_create(&threads[i], &a, priv_R, NULL); // il primo processo è il lettore
+            pthread_create(&threads[i], &a, consumer, NULL); // il primo processo è il lettore
         else{
-            pthread_create(&threads[current_consumer], &a, priv_W, (void*) &consumer_ids[current_consumer]); // gli altri sono consumatori, ai quali assegno un indice
+            pthread_create(&threads[current_consumer], &a, producer, (void*) &consumer_ids[current_consumer]); // gli altri sono consumatori, ai quali assegno un indice
             current_consumer++;
         }
 
