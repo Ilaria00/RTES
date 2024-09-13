@@ -14,12 +14,6 @@ struct semaforoprivato_t {
     int nw;
 } semaforo;
 
-void semaforoprivato_init (struct semaforoprivato_t *s) {
-    sem_init(&s->s, 0, 0);
-    s->nbw = 0;
-    s->nw = 0;
-}
-
 struct gestore_t {
     sem_t mutex; 
     sem_t priv_R; //semaforo del lettore e dello scrittore
@@ -30,11 +24,17 @@ struct gestore_t {
     T mex[M];
 } gestore;
 
+void semaforoprivato_init (struct semaforoprivato_t *s) {
+    sem_init(&s->s, 0, 0);
+    s->nbw = 0;
+    s->nw = 0;
+}
+
 void gestore_init (struct gestore_t *g) {
     sem_init(&g->mutex, 0, 1);
     sem_init(&g->priv_R, 0, 0);
     for (int j=0; j<M; j++) {
-        semaforoprivato_init(&g->priv_W[j].s);
+        semaforoprivato_init(&g->priv_W[j]);
     }
     g->nr = 0;
     g->nbr = 0;
