@@ -2,6 +2,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <time.h>
+#include <unistd.h>
 
 #define M 5 //numero mittenti
 
@@ -22,7 +23,7 @@ void semaforoprivato_init (struct semaforoprivato_t *s) {
 struct gestore_t {
     sem_t mutex; 
     sem_t priv_R; //semaforo del lettore e dello scrittore
-    semaforoprivato_t priv_W[M];
+    struct semaforoprivato_t priv_W[M];
     int nbr; //thread bloccati
     int nr; //thread in esecuzione
     int num_mex;
@@ -32,28 +33,28 @@ struct gestore_t {
 void gestore_init (struct gestore_t *g) {
     sem_init(&g->mutex, 0, 1);
     sem_init(&g->priv_R, 0, 0);
-    for (int i=0; i<M; i++) {
-        semaforoprivato_init(&g->priv_W[i]);
+    for (int j=0; j<M; j++) {
+        semaforoprivato_init(&g->priv_W[j].s);
     }
     g->nr = 0;
     g->nbr = 0;
     g->num_mex = 0;
-    for(int i=0; i<M; i++) {
-       g-> mex[i] = -1; //inizialmente è vuoto
+    for(int k=0; k<M; k++) {
+        g->mex[k] = -1; //inizialmente è vuoto
     }
 }
 
-void send (struct gestore_t *g, int i) {
-    g->mex[i] = i; /*non mi serve fare mutua esclusione sul messaggio
+void send (struct gestore_t *g, int j) {
+    g->mex[j] = j; /*non mi serve fare mutua esclusione sul messaggio
     poiché ciascun thread opera su un indice diverso!*/
 
     sem_wait(&g->mutex);
     g->num_mex++;
-    if (g->num_mex == 5) {
+    if (g->num_mex == M) {
         sem_post(&g->priv_R);
     }
     sem_post(&g->mutex);
-    sem_wait(&g->priv_W[i].s);
+    sem_wait(&g->priv_W[j].s);
     /*ciascun produttore si blocca sul proprio semaforo, 
     in attesa che il consumatore lo svegli*/
 }
@@ -63,8 +64,8 @@ void receive (struct gestore_t *g) {
     sem_wait(&g->mutex);
 
     g->num_mex = 0;
-    for (int i=0; i<M; i++) {
-        sem_post(&g->priv_W[i].s);
+    for (int k=0; k<M; k++) {
+        sem_post(&g->priv_W[k].s);
     }
     sem_post(&g->mutex);
 }
@@ -90,7 +91,7 @@ int main(void){
 
     pthread_attr_t a;
     pthread_t threads[6];
-    int consumer_ids[5] = { 0, 1, 2, 3, 4 };
+    int consumer_ids[M] = { 0, 1, 2, 3, 4 };
     int current_consumer = 0;
 
     pthread_attr_init(&a);
