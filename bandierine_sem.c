@@ -136,7 +136,7 @@ int risultato_gioco (struct bandierine_t *b) {
 /*MAIN*/
 
 void *giocatore (void *arg) {
-    int numerogiocatore = (int)arg;
+    int numerogiocatore = *((int*)arg);
     attendi_il_via(&bandierine, numerogiocatore);
     //corri e tenta di prendere la bandierina
     if(bandierina_presa(&bandierine, numerogiocatore)) {
@@ -169,8 +169,8 @@ int main (int argc, char* argv[]) {
 
     int n1 = 0, n2 = 1;
 
-    pthread_create(&tgiocatore1, NULL, giocatore, (void *) (n1));
-    pthread_create(&tgiocatore2, NULL, giocatore, (void *) (n2));
+    pthread_create(&tgiocatore1, NULL, giocatore, &n1);
+    pthread_create(&tgiocatore2, NULL, giocatore, &n2);
     pthread_create(&tgiudice, NULL, giudice, NULL);
 
     pthread_join(tgiocatore1, NULL);
