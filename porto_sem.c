@@ -38,6 +38,7 @@ void entrata_richiesta (struct porto_t *porto, int n) {
     printf("Barca %d chiede di entrare\n", n);
     if (porto->posti_occupati >= N || porto->attraversamenti >= 2) {
         //se i posti sono tutti occupati mi blocco
+        printf(("Barca %d in attesa per entrare - posti occupati: %d - attraversamenti: %d\n", n, porto->posti_occupati, porto->attraversamenti));
         porto->barche_bloccate_in_entrata++;
         sem_post(&porto->mutex);
         sem_wait(&porto->barca_entra_s);
@@ -68,6 +69,7 @@ void uscita_richiesta (struct porto_t *porto, int n) {
     sem_wait(&porto->mutex);
     printf("Barca %d chiede di uscire\n", n);
     if (porto->attraversamenti >= 2) {
+        printf("Barca %d in attesa di uscire - attraversmenti: %d\n", n, porto->attraversamenti);
         porto->barche_bloccate_in_uscita++;
         sem_post(&porto->mutex);
         sem_wait(&porto->barca_esce_s);
