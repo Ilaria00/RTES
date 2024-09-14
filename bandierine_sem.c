@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <semaphore.h>
-#include <ptrhead.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -16,7 +16,7 @@ struct bandierine_t {
     int num_giocatori;
     int giudice_arrivato;
     int vincitore; //-1
-    bool gara_conclusa = false;
+    bool gara_conclusa;
     
 } bandierine;
 
@@ -31,6 +31,7 @@ void init_bandierine(struct bandierine_t *b) {
     b->num_giocatori = 0;
     b->giudice_arrivato = 0;
     b->vincitore = -1;
+    b->gara_conclusa = false;
 }
 
 void attendi_giocatori (struct bandierine_t *b) {
