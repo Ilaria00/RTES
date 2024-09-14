@@ -128,6 +128,7 @@ int risultato_gioco (struct bandierine_t *b) {
 
     //se i giocatori non hanno ancora concluso la gara mi blocco
     if (b->gara_conclusa == false) {
+        sem_post(&corsa->mutex);
         sem_wait(&b->giudice_fine_s);
     }
 
