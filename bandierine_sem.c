@@ -42,7 +42,7 @@ void attendi_giocatori (struct bandierine_t *b) {
     /*il giudice si blocca se non sono arrivati entambi i giocatori*/
     if (b->b_giocatore < 2) {
         sem_post(&b->mutex);
-        printf("Giudice: aspetto i giocatori");
+        printf("Giudice: aspetto i giocatori\n");
         sem_wait(&b->giudice_s);
     }
     sem_post(&b->mutex);
