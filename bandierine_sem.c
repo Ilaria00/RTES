@@ -38,6 +38,7 @@ void attendi_giocatori (struct bandierine_t *b) {
     
     sem_wait(&b->mutex);
     b->giudice_arrivato = 1;
+    printf("Il giudice e' arrivato\n");
     /*il giudice si blocca se non sono arrivati entambi i giocatori*/
     if (b->b_giocatore < 2) {
         sem_post(&b->mutex);
@@ -53,6 +54,7 @@ void via(struct bandierine_t *b) {
     printf("Giudice: via\n");
     for (int i=0; i < 2; i++) {
         sem_post(&b->giocatore_s);
+        printf("Il giudice sveglia i giocatori\n");
     }
     b->b_giocatore = 0;
     sem_post(&b->mutex);
