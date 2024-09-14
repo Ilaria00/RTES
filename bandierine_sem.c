@@ -54,7 +54,6 @@ void via(struct bandierine_t *b) {
     printf("Giudice: via\n");
     for (int i=0; i < 2; i++) {
         sem_post(&b->giocatore_s);
-        printf("Il giudice sveglia i giocatori\n");
     }
     b->b_giocatore = 0;
     sem_post(&b->mutex);
