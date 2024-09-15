@@ -4,18 +4,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define N 5 //numero tipologie di attrezzi
-/*bilanciere
-cyclette
-tapis roulant
-panca
-pesi*/
+#define N 3 //numero tipologie di attrezzi
 
-#define M 4 //numero di attrezzi per tipologia
+#define M 2 //numero di attrezzi per tipologia
 
-#define P 10 //persone in palestra
+#define P 5 //persone in palestra
 
-#define E 3 //esercizi che fa ciascuna persona
+#define E 2 //esercizi che fa ciascuna persona
 
 struct semaforoprivato_t {
     sem_t s;
@@ -46,6 +41,10 @@ void init_palestra (struct palestra_t *p) {
 
     for (int i=0; i<N; i++) {
     semaforoprivato_init(&p->s_uso_attrezzo[i]);
+    }
+
+    for (int i=0; i<P; i++){
+        p->prenotazioni[i] = -1; //al'inizio non ci sono prenotazioni
     }
 }
 
@@ -112,6 +111,7 @@ void *persona (void *arg) {
         if (i != 0) {
             prenota(&palestra, numeropersona, prossimoattrezzo);
         }
+        sleep(1);
         fineuso(&palestra, numeropersona, attrezzocorrente);
         if (i != 0) {
             attrezzocorrente = prossimoattrezzo;
