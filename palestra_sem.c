@@ -35,14 +35,14 @@ struct palestra_t {
 } palestra;
 
 void semaforoprivato_init (struct semaforoprivato_t *s) {
-    sem_init(&s->s);
+    sem_init(&s->s, 0, 0);
     s->c_attesa = 0; //thread che si bloccano sul semaforo
     s->c_in_uso = 0; //numero di attrezzi in uso 
     s->c_prenotati = 0; //numero attrezzi prenotati
 }
 
 void init_palestra (struct palestra_t *p) {
-    sem_init(&p->mutex);
+    sem_init(&p->mutex, 0, 1);
 
     for (int i=0; i<N; i++) {
     semaforoprivato_init(&p->s_uso_attrezzo[i]);
@@ -70,7 +70,7 @@ void usaattrezzo (struct palestra_t *p, int numeropersona, int tipoattrezzo) {
         printf("La persona %d attende di usare l'attrezzo %d ma non l'aveva prenotato e non e' libero\n", numeropersona, tipoattrezzo);
         p->s_uso_attrezzo[tipoattrezzo].c_attesa++;
         sem_post(&p->mutex);
-        sem_wait(&p->s_uso_attrezzo[tipoattrezzo].s)
+        sem_wait(&p->s_uso_attrezzo[tipoattrezzo].s);
         p->s_uso_attrezzo[tipoattrezzo].c_attesa--;
         p->s_uso_attrezzo[tipoattrezzo].c_in_uso++;
     }
@@ -126,8 +126,8 @@ int main (int argc, char *argv[]) {
     init_palestra(&palestra);
 
     for (int i=0; i<P; i++){
-        numeri_persona[i] = i;
-        pthread_create(&tpersona[i], NULL, palestra, &numeri_persone[i]);
+        numeri_persone[i] = i;
+        pthread_create(&tpersona[i], NULL, persona, &numeri_persone[i]);
     }
 
     for (int i=0; i<P; i++) {
