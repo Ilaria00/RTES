@@ -83,10 +83,10 @@ int sonoarrivato (struct rotonda_t *r, int numeroauto, int destinazione) {
         sem_post(&r->mutex);
     }
     else {
-        printf("L'auto %d prosegue verso %d\n", numeroauto, r->auto[numeroauto] + 1);
+        printf("L'auto %d prosegue verso %d\n", numeroauto, r->automobile[numeroauto] + 1);
         ret = 1;
         sem_post(&r->mutex);
-        entra(&r, numeroauto, r->automobile[numeroauto] + 1);
+        entra(&rotonda, numeroauto, r->automobile[numeroauto] + 1);
     }
     return ret;
 }
