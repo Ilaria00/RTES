@@ -5,9 +5,9 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#define N 10 //numero auto
+#define N 7 //numero auto
 
-#define S 4 //numero sezioni
+#define S 3 //numero sezioni
 
 struct semaforoprivato_t {
     sem_t s;
@@ -21,6 +21,8 @@ struct rotonda_t {
     struct semaforoprivato_t sezione[S];
 
     int automobile[N]; //auto[0] = 1 significa che l'auto 0 sta occupando la sezione 1
+
+    int num_sezionioccupate;
 
 } rotonda;
 
@@ -40,13 +42,14 @@ void init_rotonda (struct rotonda_t *r) {
     for (int i=0; i<N; i++) {
         r->automobile[i] = -1;
     }
+    r->num_sezionioccupate = 0;
 }
 
 void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     sem_wait(&r->mutex);
 
     /*se la sezione è occupata mi blocco*/
-    if (r->sezione[sezione].occupata){
+    if (r->sezione[sezione].occupata || r->num_sezionioccupate == S-1){
         printf("L'auto %d attende di entrare nella sezione %d perche' momentaneamente occupata\n", numeroauto, sezione);
         r->sezione[sezione].c_attesa++;
         sem_post(&r->mutex);
@@ -60,13 +63,15 @@ void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     if (r->automobile[numeroauto] == (sezione - 1 + S)%S) {
         /*allora significa che prima stavo occupando un'altra sezioen che ora libero*/
         r->sezione[(sezione - 1 + S)%S].occupata = false;
-        /*e se c'era qualcuno in attesa per entrare in quella sezioen lo sblocco*/
+        r->num_sezionioccupate--;
+        /*e se c'era qualcuno in attesa per entrare in quella sezione lo sblocco*/
         if (r->sezione[(sezione - 1 + S)%S].c_attesa) {
             sem_post(&r->sezione[(sezione - 1 + S)%S].s);
         }
     }
     /*altrimenti significa che vale -1 ovvero che sono appena entrata e che non stavo occupando nulla precedentemente*/
     printf("La sezione %d si e' liberata e ora l'auto %d la sta occupando\n", sezione, numeroauto);
+    r->num_sezionioccupate++;
     r->sezione[sezione].occupata = true;
     r->automobile[numeroauto] = sezione;
     sem_post(&r->mutex);
@@ -97,6 +102,7 @@ void esci (struct rotonda_t *r, int numeroauto) {
     printf("L'auto %d esce dalla rotonda\n", numeroauto);
     sezione_occupata = r->automobile[numeroauto];
     r->sezione[sezione_occupata].occupata = false;
+    r->num_sezionioccupate--;
     if (r->sezione[sezione_occupata].c_attesa) {
             sem_post(&r->sezione[sezione_occupata].s);
     }
