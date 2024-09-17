@@ -57,12 +57,12 @@ void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     /*occupo la sezione che si e' liberata
     e se non sono appena entrata in rotonda
     libero la sezione occupata precedentemente*/
-    if (r->automobile[numeroauto] == sezione - 1) {
+    if (r->automobile[numeroauto] == (sezione - 1 + S)%S) {
         /*allora significa che prima stavo occupando un'altra sezioen che ora libero*/
-        r->sezione[sezione - 1].occupata = false;
-        /*e se c'era qualcuno inattesa per entrare in quella sezioen lo sblocco*/
-        if (r->sezione[sezione - 1].c_attesa) {
-            sem_post(&r->sezione[sezione - 1].s);
+        r->sezione[(sezione - 1 + S)%S].occupata = false;
+        /*e se c'era qualcuno in attesa per entrare in quella sezioen lo sblocco*/
+        if (r->sezione[(sezione - 1 + S)%S].c_attesa) {
+            sem_post(&r->sezione[(sezione - 1 + S)%S].s);
         }
     }
     /*altrimenti significa che vale -1 ovvero che sono appena entrata e che non stavo occupando nulla precedentemente*/
