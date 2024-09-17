@@ -20,7 +20,7 @@ struct rotonda_t {
 
     struct semaforoprivato_t sezione[S];
 
-    int auto[N]; //auto[0] = 1 significa che l'auto 0 sta occupando la sezione 1
+    int automobile[N]; //auto[0] = 1 significa che l'auto 0 sta occupando la sezione 1
 
 } rotonda;
 
@@ -38,7 +38,7 @@ void init_rotonda (struct rotonda_t *r) {
     }
 
     for (int i=0; i<N; i++) {
-        r->auto[i] = -1;
+        r->automobile[i] = -1;
     }
 }
 
@@ -57,7 +57,7 @@ void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     /*occupo la sezione che si e' liberata
     e se non sono appena entrata in rotonda
     libero la sezione occupata precedentemente*/
-    if (r->auto[numeroauto] == sezione - 1) {
+    if (r->automobile[numeroauto] == sezione - 1) {
         /*allora significa che prima stavo occupando un'altra sezioen che ora libero*/
         r->sezione[sezione - 1].occupata = false;
         /*e se c'era qualcuno inattesa per entrare in quella sezioen lo sblocco*/
@@ -68,7 +68,7 @@ void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     /*altrimenti significa che vale -1 ovvero che sono appena entrata e che non stavo occupando nulla precedentemente*/
     printf("La sezione %d si e' liberata e ora l'auto %d la sta occupando\n", sezione, numeroauto);
     r->sezione[sezione].occupata = true;
-    r->auto[numeroauto] = sezione;
+    r->automobile[numeroauto] = sezione;
     sem_post(&r->mutex);
 }
 
@@ -77,7 +77,7 @@ int sonoarrivato (struct rotonda_t *r, int numeroauto, int destinazione) {
     int ret;
 
     /*se la sezione che numeroauto sta occupando e' quella di destinazione allora ritorna 0*/
-    if (r->auto[numeroauto] == destinazione) {
+    if (r->automobile[numeroauto] == destinazione) {
         printf("L'auto %d si trova nella sezione di uscita %d\n", numeroauto, destinazione);
         ret = 0;
         sem_post(&r->mutex);
@@ -86,7 +86,7 @@ int sonoarrivato (struct rotonda_t *r, int numeroauto, int destinazione) {
         printf("L'auto %d prosegue verso %d\n", numeroauto, r->auto[numeroauto] + 1);
         ret = 1;
         sem_post(&r->mutex);
-        entra(&r, numeroauto, r->auto[numeroauto] + 1);
+        entra(&r, numeroauto, r->automobile[numeroauto] + 1);
     }
     return ret;
 }
@@ -95,7 +95,7 @@ void esci (struct rotonda_t *r, int numeroauto) {
     sem_wait(&r->mutex);
     int sezione_occupata;
     printf("L'auto %d esce dalla rotonda\n", numeroauto);
-    sezione_occupata = r->auto[numeroauto];
+    sezione_occupata = r->automobile[numeroauto];
     r->sezione[sezione_occupata].occupata = false;
     if (r->sezione[sezione_occupata].c_attesa) {
             sem_post(&r->sezione[sezione_occupata].s);
@@ -105,7 +105,7 @@ void esci (struct rotonda_t *r, int numeroauto) {
     }
 }
 
-void *auto (void *arg) 
+void *automobile (void *arg) 
 {
     int sezionediingresso = rand() % S;
     int destinazione = rand() % S;
@@ -127,7 +127,7 @@ int main (int argc, char* argv[])
 
     for (int i=0; i<N; i++) {
         tauto_id[i] = i;
-        pthread_create(&tauto[i], NULL, auto, &tauto_id[i]);
+        pthread_create(&tauto[i], NULL, automobile, &tauto_id[i]);
     }
 
     for (int i=0; i<N; i++) {
