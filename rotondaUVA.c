@@ -60,8 +60,10 @@ void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     /*occupo la sezione che si e' liberata
     e se non sono appena entrata in rotonda
     libero la sezione occupata precedentemente*/
-    if (r->automobile[numeroauto] == (sezione - 1 + S)%S) {
-        /*allora significa che prima stavo occupando un'altra sezioen che ora libero*/
+    printf("dopo entra e prima dell'if: r->automobile[%d] = %d\n", numeroauto, r->automobile[numeroauto]);
+    if (r->automobile[numeroauto] == ((sezione - 1 + S)%S)) {
+        /*allora significa che prima stavo occupando un'altra sezione che ora libero*/
+        printf("Prima l'auto %d stava occupando la sezione %d che ora viene liberata\n Ora le sezioni occupate sono %d\n", numeroauto, (sezione - 1 + S)%S, r->num_sezionioccupate);
         r->sezione[(sezione - 1 + S)%S].occupata = false;
         r->num_sezionioccupate--;
         /*e se c'era qualcuno in attesa per entrare in quella sezione lo sblocco*/
@@ -74,6 +76,7 @@ void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     r->num_sezionioccupate++;
     r->sezione[sezione].occupata = true;
     r->automobile[numeroauto] = sezione;
+    printf("dopo entra e dopo if: r->automobile[%d] = %d\n", numeroauto, r->automobile[numeroauto]);
     sem_post(&r->mutex);
 }
 
@@ -91,6 +94,7 @@ int sonoarrivato (struct rotonda_t *r, int numeroauto, int destinazione) {
         printf("L'auto %d prosegue verso %d\n", numeroauto, (r->automobile[numeroauto] + 1)%S);
         ret = 1;
         sem_post(&r->mutex);
+        printf("prima di entra: r->automobile[%d] = %d\n", numeroauto, r->automobile[numeroauto]);
         entra(&rotonda, numeroauto, (r->automobile[numeroauto] + 1)%S);
     }
     return ret;
@@ -99,7 +103,7 @@ int sonoarrivato (struct rotonda_t *r, int numeroauto, int destinazione) {
 void esci (struct rotonda_t *r, int numeroauto) {
     sem_wait(&r->mutex);
     int sezione_occupata;
-    printf("L'auto %d esce dalla rotonda\n", numeroauto);
+    printf("L'auto %d esce dalla rotonda e stava\n", numeroauto);
     sezione_occupata = r->automobile[numeroauto];
     r->sezione[sezione_occupata].occupata = false;
     r->num_sezionioccupate--;
