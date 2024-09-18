@@ -28,7 +28,7 @@ void init_rotonda (struct rotonda_t *r) {
     pthread_mutex_init(&r->mutex, &m_attr);
 
     for (int i=0; i<S; i++) {
-        pthread_cond_init(&r->cond_sezione[i], c_attr);
+        pthread_cond_init(&r->cond_sezione[i], &c_attr);
     }
 
     for (int i=0; i<S; i++) {
@@ -109,7 +109,7 @@ void *auto_thread (void *arg)
 }
 
 int main (int argc, char* argv[]) {
-    ptrhead_t tauto[N];
+    pthread_t tauto[N];
 
     int auto_id[N];
 
