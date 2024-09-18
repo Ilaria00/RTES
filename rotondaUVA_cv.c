@@ -46,8 +46,8 @@ void init_rotonda (struct rotonda_t *r) {
 void entra (struct rotonda_t *r, int numeroauto, int sezione) {
     pthread_mutex_lock(&r->mutex);
 
-    printf("Lauto %d chiede di entrare nella sezione %d\n", numeroauto, sezione);
-    while (r->sezione[sezione] == 0) {
+    printf("L'auto %d chiede di entrare nella sezione %d\n", numeroauto, sezione);
+    while (r->sezione[sezione] == 1) {
         /*finché la sezione è occupata*/
         printf("Lauto %d attende il suo ingrsso nella sezione %d occupata\n", numeroauto, sezione);
         pthread_cond_wait(&r->cond_sezione[sezione], &r->mutex);
